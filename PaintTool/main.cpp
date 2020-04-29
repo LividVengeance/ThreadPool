@@ -24,6 +24,8 @@
 #include "ThreadPool.h"
 #include "WorkQueue.h"
 #include "Task.h"
+#include "Utilities.h"
+#include <complex>
 
 #define WINDOW_CLASS_NAME L"WINCLASS1"
 
@@ -31,9 +33,72 @@
 HINSTANCE g_hInstance;
 HMENU g_hMenu;
 
+
 void GameLoop()
 {
 	//One frame of game logic occurs here...
+}
+
+void value1(HDC hdc, int x, int y)
+{
+	std::complex<float> point((float)x / Utils::SCR_WIDTH - 1.0 , (float)y / Utils::SCR_HEIGHT - 0.2);
+
+	std::complex<float> z(0, 0);
+	int count = 0;
+	while (abs(z) < 2 && count <= 34)
+	{
+		z = z * z + point;
+		count++;
+	}
+	if (count < 34)
+	{
+		SetPixel(hdc, x, y, RGB(0, 0, 0));
+	}
+	else
+	{
+		SetPixel(hdc, x, y, RGB(255, 192, 203));
+	}
+}
+
+
+int mainFunc(HDC hdc)
+{
+	//srand((unsigned int)time(0));
+	//const int kiTOTALITEMS = 20;
+	////Create a ThreadPool Object capable of holding as many threads as the number of cores
+	//ThreadPool& threadPool = ThreadPool::GetInstance();
+	////Initialize the pool
+	//threadPool.Initialize();
+	//threadPool.Start();
+	//// The main thread writes items to the WorkQueue
+	//for (int i = 0; i < kiTOTALITEMS; i++)
+	//{
+	//	threadPool.Submit(CTask(hdc));
+	//	std::cout << "Main Thread wrote item " << i << " to the Work Queue " << std::endl;
+	//	//Sleep for some random time to simulate delay in arrival of work items
+	//	std::this_thread::sleep_for(std::chrono::milliseconds(rand() % 1001));
+	//}
+	//if (threadPool.getItemsProcessed() == kiTOTALITEMS)
+	//{
+	//	threadPool.Stop();
+	//}
+	//
+	//threadPool.DestroyInstance();
+	//
+	//int iTemp;
+	//std::cin >> iTemp;
+
+	// Goes through every pixel
+	for (int i = 0; i < Utils::SCR_WIDTH; i++)
+	{
+		for (int j = 0; j < Utils::SCR_HEIGHT; j++)
+		{
+			value1(hdc, i, j);
+		}
+	}
+
+	//CTask newTask(hdc);
+	return 0;
 }
 
 LRESULT CALLBACK WindowProc(HWND _hwnd,
@@ -42,8 +107,9 @@ LRESULT CALLBACK WindowProc(HWND _hwnd,
 	LPARAM _lparam)
 {
 	// This is the main message handler of the system.
+	PAINTSTRUCT ps;
 	HDC hdc;        // Handle to a device context.
-	
+
 	switch (_msg)
 	{
 	case WM_CREATE:
@@ -61,6 +127,12 @@ LRESULT CALLBACK WindowProc(HWND _hwnd,
 			PostQuitMessage(0);
 			break;
 		}
+		case ID_FILE_NEW:
+		{	
+			
+			
+			break;
+		}
 		case ID_HELP_ABOUT:
 		{
 			MessageBox(_hwnd, L"This paint tool was developed by Andrew Barnes", L"Author Information", MB_OK | MB_ICONINFORMATION);
@@ -72,12 +144,16 @@ LRESULT CALLBACK WindowProc(HWND _hwnd,
 		return(0);
 	}
 	break;
+	case WM_PAINT:
+	{
+		hdc = BeginPaint(_hwnd, &ps);
+		mainFunc(hdc);
+		break;
+	}
 	case WM_DESTROY:
 	{
 		// Kill the application, this sends a WM_QUIT message.
 		PostQuitMessage(0);
-
-		
 		// Return success.
 		return (0);
 	}
@@ -129,7 +205,7 @@ int WINAPI WinMain(HINSTANCE _hInstance,
 		L"Thread Pool Window",   // Title.
 		WS_OVERLAPPEDWINDOW | WS_VISIBLE,
 		100, 100,                    // Initial x,y.
-		1500, 800,                // Initial width, height.
+		Utils::SCR_WIDTH, Utils::SCR_HEIGHT,                // Initial width, height.
 		NULL,                   // Handle to parent.
 		g_hMenu,                   // Handle to menu.
 		_hInstance,             // Instance of this application.
@@ -168,32 +244,6 @@ int WINAPI WinMain(HINSTANCE _hInstance,
 	return (static_cast<int>(msg.wParam));
 }
 
-int mainFunc()
-{
-	srand((unsigned int)time(0));
-	const int kiTOTALITEMS = 20;
-	//Create a ThreadPool Object capable of holding as many threads as the number of cores
-	ThreadPool& threadPool = ThreadPool::GetInstance();
-	//Initialize the pool
-	threadPool.Initialize();
-	threadPool.Start();
-	// The main thread writes items to the WorkQueue
-	for (int i = 0; i < kiTOTALITEMS; i++)
-	{
-		threadPool.Submit(CTask(i));
-		std::cout << "Main Thread wrote item " << i << " to the Work Queue " << std::endl;
-		//Sleep for some random time to simulate delay in arrival of work items
-		std::this_thread::sleep_for(std::chrono::milliseconds(rand() % 1001));
-	}
-	if (threadPool.getItemsProcessed() == kiTOTALITEMS)
-	{
-		threadPool.Stop();
-	}
 
-	threadPool.DestroyInstance();
 
-	int iTemp;
-	std::cin >> iTemp;
 
-	return 0;
-}
