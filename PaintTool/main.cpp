@@ -34,6 +34,17 @@
 HINSTANCE g_hInstance;
 HMENU g_hMenu;
 
+std::wstring s2ws(const std::string& s)
+{
+	int len;
+	int slength = (int)s.length() + 1;
+	len = MultiByteToWideChar(CP_ACP, 0, s.c_str(), slength, 0, 0);
+	wchar_t* buf = new wchar_t[len];
+	MultiByteToWideChar(CP_ACP, 0, s.c_str(), slength, buf, len);
+	std::wstring r(buf);
+	delete[] buf;
+	return r;
+}
 
 void GameLoop()
 {
@@ -42,7 +53,12 @@ void GameLoop()
 
 int mainFunc(HDC hdc, HWND _hwnd)
 {
-	auto start = std::chrono::high_resolution_clock::now();
+	//auto start = std::chrono::high_resolution_clock::now();
+	typedef std::chrono::high_resolution_clock Time;
+	typedef std::chrono::milliseconds ms;
+	typedef std::chrono::duration<float> fsec;
+	auto timeStart = Time::now();
+
 
 	srand((unsigned int)time(0));
 	const int kiTOTALITEMS = Utils::SCR_WIDTH;
@@ -68,13 +84,17 @@ int mainFunc(HDC hdc, HWND _hwnd)
 	
 	threadPool.DestroyInstance();
 
-	auto finish = std::chrono::high_resolution_clock::now();
-	std::chrono::duration<float> differance = finish - start;
+	auto timeEnd = Time::now();
+	fsec timeFinish = timeEnd - timeStart;
+	ms d = std::chrono::duration_cast<ms>(timeFinish);
+	float test = timeFinish.count();
 	
-	std::string x = "fred";
-	int d = 3;
+	std::string timeTakeStr = "Time taken: " + std::to_string(test) + "ms";
 
-	MessageBox(_hwnd, L"Done", L"Time Taken to Complete", MB_OK);
+	std::wstring timeMsg = s2ws(timeTakeStr);
+	LPCWSTR timeResult = timeMsg.c_str();
+
+	MessageBox(_hwnd, timeResult, L"Time Taken to Complete", MB_OK);
 	return(0);
 }
 
