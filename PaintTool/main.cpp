@@ -6,10 +6,10 @@
 
   (c) 2019 Media Design School
 
-  File Name   :   [Filename]
-  Description :   [One line description of what is the file is for]
-  Author      :   [Your name]
-  Mail        :   [your.name]@mediadesign.school.nz
+  File Name   :   main.cpp
+  Description :   Creates a Mandelbrot Fractal Set using a multiple threaded 
+  Author      :   Andrew Barnes
+  Mail        :   andrew.bar8456@mediadesign.school.nz
 ********************/
 
 #include <iostream>
@@ -231,4 +231,3 @@ int WINAPI WinMain(HINSTANCE _hInstance,
 	// Return to Windows like this...
 	return (static_cast<int>(msg.wParam));
 }
-
