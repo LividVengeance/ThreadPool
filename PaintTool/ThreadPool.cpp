@@ -52,8 +52,9 @@ void ThreadPool::DestroyInstance()
 	s_pThreadPool = 0;
 }
 
-void ThreadPool::Initialize()
+void ThreadPool::Initialize(HDC hdc)
 {
+	threadHDC = hdc;
 	//Create a new Work Queue
 	m_pWorkQueue = new CWorkQueue<CTask>();
 }
@@ -81,26 +82,26 @@ void ThreadPool::DoWork()
 {
 	//Entry point of  a thread.
 	//std::cout << std::endl << "Thread with id " << std::this_thread::get_id() << "starting........" << std::endl;
-	//while (!m_bStop)
-	//{
-	//	CTask WorkItem;
-	//	//If there is an item in the queue to be processed; just take it off the q and process it
-	//	//m_pWorkQueue->blocking_pop(WorkItem);
-	//	if (m_pWorkQueue->blocking_pop(WorkItem, 500))
-	//	{
-	//		std::cout << std::endl << "Thread with id " << std::this_thread::get_id() << " is working on item " << WorkItem.getValue() << " in the work queue" << std::endl;
-	//		WorkItem();
-	//		//Sleep to simulate work being done
-	//		std::this_thread::sleep_for(std::chrono::milliseconds(rand() % 101));
-	//		std::cout << std::endl << "Thread with id " << std::this_thread::get_id() << " finished processing item " << WorkItem.getValue() << std::endl;
-	//		m_aiItemsProcessed++;
-	//	}
-	//	//Else just continue back to the beginning of the while loop.
-	//	else
-	//	{
-	//		continue;
-	//	}
-	//}
+	while (!m_bStop)
+	{
+		CTask WorkItem;
+		//If there is an item in the queue to be processed; just take it off the q and process it
+		//m_pWorkQueue->blocking_pop(WorkItem);
+		if (m_pWorkQueue->blocking_pop(WorkItem, 500))
+		{
+			//std::cout << std::endl << "Thread with id " << std::this_thread::get_id() << " is working on item " << WorkItem.getValue() << " in the work queue" << std::endl;
+			WorkItem();
+			//Sleep to simulate work being done
+			//std::this_thread::sleep_for(std::chrono::milliseconds(rand() % 101));
+			//std::cout << std::endl << "Thread with id " << std::this_thread::get_id() << " finished processing item " << WorkItem.getValue() << std::endl;
+			m_aiItemsProcessed++;
+		}
+		//Else just continue back to the beginning of the while loop.
+		else
+		{
+			continue;
+		}
+	}
 }
 
 std::atomic_int& ThreadPool::getItemsProcessed()

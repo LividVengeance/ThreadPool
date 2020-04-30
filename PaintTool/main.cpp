@@ -17,6 +17,7 @@
 #include <windowsx.h>  // Include useful macros.
 #include <math.h>
 #include <time.h>
+#include <string.h>
 
 #define WIN32_LEAN_AND_MEAN
 
@@ -39,66 +40,42 @@ void GameLoop()
 	//One frame of game logic occurs here...
 }
 
-void value1(HDC hdc, int x, int y)
+int mainFunc(HDC hdc, HWND _hwnd)
 {
-	std::complex<float> point((float)x / Utils::SCR_WIDTH - 1.0 , (float)y / Utils::SCR_HEIGHT - 0.2);
+	auto start = std::chrono::high_resolution_clock::now();
 
-	std::complex<float> z(0, 0);
-	int count = 0;
-	while (abs(z) < 2 && count <= 34)
+	srand((unsigned int)time(0));
+	const int kiTOTALITEMS = Utils::SCR_WIDTH;
+	//Create a ThreadPool Object capable of holding as many threads as the number of cores
+	ThreadPool& threadPool = ThreadPool::GetInstance();
+	//Initialize the pool
+	threadPool.Initialize(hdc);
+	threadPool.Start();
+	// The main thread writes items to the WorkQueue
+	for (int i = 0; i < kiTOTALITEMS; i++)
 	{
-		z = z * z + point;
-		count++;
+		threadPool.Submit(CTask(hdc, i));
+		std::cout << "Main Thread wrote item " << i << " to the Work Queue " << std::endl;
 	}
-	if (count < 34)
+	while (threadPool.getItemsProcessed() != kiTOTALITEMS)
 	{
-		SetPixel(hdc, x, y, RGB(0, 0, 0));
+	
 	}
-	else
+	if (threadPool.getItemsProcessed() == kiTOTALITEMS)
 	{
-		SetPixel(hdc, x, y, RGB(255, 192, 203));
+		threadPool.Stop();
 	}
-}
+	
+	threadPool.DestroyInstance();
 
+	auto finish = std::chrono::high_resolution_clock::now();
+	std::chrono::duration<float> differance = finish - start;
+	
+	std::string x = "fred";
+	int d = 3;
 
-int mainFunc(HDC hdc)
-{
-	//srand((unsigned int)time(0));
-	//const int kiTOTALITEMS = 20;
-	////Create a ThreadPool Object capable of holding as many threads as the number of cores
-	//ThreadPool& threadPool = ThreadPool::GetInstance();
-	////Initialize the pool
-	//threadPool.Initialize();
-	//threadPool.Start();
-	//// The main thread writes items to the WorkQueue
-	//for (int i = 0; i < kiTOTALITEMS; i++)
-	//{
-	//	threadPool.Submit(CTask(hdc));
-	//	std::cout << "Main Thread wrote item " << i << " to the Work Queue " << std::endl;
-	//	//Sleep for some random time to simulate delay in arrival of work items
-	//	std::this_thread::sleep_for(std::chrono::milliseconds(rand() % 1001));
-	//}
-	//if (threadPool.getItemsProcessed() == kiTOTALITEMS)
-	//{
-	//	threadPool.Stop();
-	//}
-	//
-	//threadPool.DestroyInstance();
-	//
-	//int iTemp;
-	//std::cin >> iTemp;
-
-	// Goes through every pixel
-	for (int i = 0; i < Utils::SCR_WIDTH; i++)
-	{
-		for (int j = 0; j < Utils::SCR_HEIGHT; j++)
-		{
-			value1(hdc, i, j);
-		}
-	}
-
-	//CTask newTask(hdc);
-	return 0;
+	MessageBox(_hwnd, L"Done", L"Time Taken to Complete", MB_OK);
+	return(0);
 }
 
 LRESULT CALLBACK WindowProc(HWND _hwnd,
@@ -127,15 +104,9 @@ LRESULT CALLBACK WindowProc(HWND _hwnd,
 			PostQuitMessage(0);
 			break;
 		}
-		case ID_FILE_NEW:
-		{	
-			
-			
-			break;
-		}
 		case ID_HELP_ABOUT:
 		{
-			MessageBox(_hwnd, L"This paint tool was developed by Andrew Barnes", L"Author Information", MB_OK | MB_ICONINFORMATION);
+			MessageBox(_hwnd, L"This thread pool mandelbrot fractal set program was developed by Andrew Barnes", L"Author Information", MB_OK | MB_ICONINFORMATION);
 			break;
 		}
 		default:
@@ -147,7 +118,7 @@ LRESULT CALLBACK WindowProc(HWND _hwnd,
 	case WM_PAINT:
 	{
 		hdc = BeginPaint(_hwnd, &ps);
-		mainFunc(hdc);
+		mainFunc(hdc, _hwnd);
 		break;
 	}
 	case WM_DESTROY:
@@ -163,7 +134,6 @@ LRESULT CALLBACK WindowProc(HWND _hwnd,
 	} // End switch.
 
 	  // Process any messages that we did not take care of...
-
 	return (DefWindowProc(_hwnd, _msg, _wparam, _lparam));
 }
 
@@ -216,8 +186,6 @@ int WINAPI WinMain(HINSTANCE _hInstance,
 		return (0);
 	}
 
-
-
 	// Enter main event loop
 	while (true)
 	{
@@ -243,7 +211,4 @@ int WINAPI WinMain(HINSTANCE _hInstance,
 	// Return to Windows like this...
 	return (static_cast<int>(msg.wParam));
 }
-
-
-
 

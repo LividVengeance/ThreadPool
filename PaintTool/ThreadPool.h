@@ -19,7 +19,8 @@ public:
 	static ThreadPool& GetInstance();
 	static void DestroyInstance();
 
-	void Initialize();
+	HDC threadHDC;
+	void Initialize(HDC hdc);
 	void Submit(CTask _iworkItem);
 	void DoWork();
 	void Start();

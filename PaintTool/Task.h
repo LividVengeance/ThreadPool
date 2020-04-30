@@ -1,4 +1,7 @@
 // A functor class
+#include <mutex>
+
+
 
 #ifndef __CTASK_H__
 #define __CTASK_H__
@@ -8,13 +11,16 @@
 class CTask
 {
 public:
-	CTask(HDC hdc);
-	//CTask(int _value);
+	int x;
+	
+	CTask(HDC hdc, int i);
+	CTask();
 	~CTask();
 	void operator()() const;
 	int getValue() const;
-	HDC* hdc;
+	HDC taskHDC;
 private:
+	static std::mutex mtx;
 	int m_ivalue;
 };
 
